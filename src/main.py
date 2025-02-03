@@ -2,10 +2,10 @@ import warnings
 
 from sklearn.metrics import accuracy_score
 from preprocess import load_dataset, preprocess_dataset
-from model import MLPClassifier, train_nn, predict_nn, train_nn_adversarial
+from model import MLPClassifier, predict_nn, train_nn_adversarial
 from counterfactual import generate_counterfactuals
 from causal_analysis import estimate_causal_effect
-from fairness_metrics import compute_fairness_metrics
+from fairness_metrics import compute_fairness_metrics, compute_counterfactual_equalized_odds
 from visualization import plot_income_distributions
 
 
@@ -38,9 +38,9 @@ def main():
     causal_graph = """
     digraph {
         sex_Male -> income;
-        sex_Male -> education.num;
-        education.num -> income;
-        hours.per.week -> income;
+        sex_Male -> education_num;
+        education_num -> income;
+        hours_per_week -> income;
         age -> income;
     }
     """
@@ -53,7 +53,7 @@ def main():
     # Train Neural Network
     feature_cols = ['education_num', 'hours_per_week', 'age']
     s_train = X_train['sex_Male']
-    model_nn, scaler = train_nn_adversarial(X_train, y_train, s_train, feature_cols, 10)
+    model_nn, scaler = train_nn_adversarial(X_train, y_train, s_train, feature_cols, n_epochs=100, lambda_=10)
 
     # Evaluate Model
     y_pred = predict_nn(model_nn, X_test, feature_cols, scaler)
@@ -71,6 +71,10 @@ def main():
     effect_after = estimate_causal_effect(processed_data_test, causal_graph, "sex_Male", "income")
     print(f"\n=== Causal Effect AFTER Repair ===")
     print(f"Estimated Total Effect of Gender on Income: {effect_after.value:.4f}")
+
+    # _, y_pred_cf = generate_counterfactuals(X_test, model_nn, scaler, feature_cols, 'sex_Male')
+    # print(y_test.shape, y_pred.shape, y_pred_cf.shape)
+    # compute_counterfactual_equalized_odds(y_test, y_pred, y_pred_cf)
 
     # Visualization
     # plot_income_distributions(y_test, y_pred, df_results)

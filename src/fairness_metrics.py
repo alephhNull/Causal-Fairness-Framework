@@ -1,6 +1,27 @@
 import numpy as np
 
 
+def compute_counterfactual_equalized_odds(y_true, y_pred_original, y_pred_cf):
+    disparities = []
+    for y in [0, 1]:
+        # Indices where true label = y
+        idx = (y_true == y)
+        # Subset predictions and sensitive attribute for this class
+        y_pred_orig_sub = y_pred_original[idx]
+        y_pred_cf_sub = y_pred_cf[idx]
+
+        # Calculate disparity for this class
+        orig_rate = y_pred_orig_sub.mean()
+        cf_rate = y_pred_cf_sub.mean()
+        print(orig_rate, cf_rate)
+        disparity = abs(orig_rate - cf_rate)
+        disparities.append(disparity)
+
+    # CEO difference is the maximum disparity across classes
+    ceo_diff = max(disparities)
+    print(f"Counterfactual Equalized Odds Difference: {ceo_diff:.4f}")
+
+
 def compute_fairness_metrics(X_test, y_test, title="Fairness Analysis"):
     mean_income_female = y_test[X_test["sex_Male"] == 0].mean()
     mean_income_male = y_test[X_test["sex_Male"] == 1].mean()

@@ -4,6 +4,7 @@ import torch.optim as optim
 from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
 
+
 # Define MLP Model
 class MLPClassifier(nn.Module):
     def __init__(self, input_dim):
@@ -80,29 +81,7 @@ class Adversary(nn.Module):
         return self.network(z)
 
 
-def train_nn(X_train, y_train, feature_cols):
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train[feature_cols])
-    model = MLPClassifier(input_dim=X_train_scaled.shape[1])
-    criterion = nn.BCELoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.01)
-
-    X_train_tensor = torch.tensor(X_train_scaled, dtype=torch.float32)
-    y_train_tensor = torch.tensor(y_train.values, dtype=torch.float32).view(-1, 1)
-
-    for epoch in tqdm(range(500), "Training the model..."):
-        optimizer.zero_grad()
-        outputs = model(X_train_tensor)
-        loss = criterion(outputs, y_train_tensor)
-        loss.backward()
-        optimizer.step()
-    print("======= Training Completed ========")
-
-
-    return model, scaler
-
-
-def train_nn_adversarial(X_train, y_train, s_train, feature_cols, lambda_=1.0):
+def train_nn_adversarial(X_train, y_train, s_train, feature_cols, n_epochs=500, lambda_=1.0):
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train[feature_cols])
 
@@ -120,7 +99,7 @@ def train_nn_adversarial(X_train, y_train, s_train, feature_cols, lambda_=1.0):
     y_train_tensor = torch.tensor(y_train.values, dtype=torch.float32).view(-1, 1)
     s_train_tensor = torch.tensor(s_train.values, dtype=torch.float32).view(-1, 1)
 
-    for epoch in tqdm(range(500), "Adversarial Training..."):
+    for epoch in tqdm(range(n_epochs), "Adversarial Training..."):
         # Forward pass
         y_pred, z = main_model(X_train_tensor, return_z=True)
         s_pred = adversary(z)
