@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def compute_fairness_metrics(X_test, y_test, title="Fairness Analysis"):
     mean_income_female = y_test[X_test["sex_Male"] == 0].mean()
     mean_income_male = y_test[X_test["sex_Male"] == 1].mean()
