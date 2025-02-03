@@ -5,6 +5,7 @@ from preprocess import load_dataset, preprocess_dataset
 from model import MLPClassifier, predict_nn, train_nn_adversarial
 from causal_analysis import estimate_causal_effect, creat_causal_model
 from fairness_metrics import compute_fairness_metrics
+from fairness_repair import repair_data
 from visualization import plot_repair_effect
 
 
@@ -61,9 +62,6 @@ def main():
     y_pred = predict_nn(model_nn, X_test, feature_cols, scaler)
     print(f"\nTest Accuracy (NN): {accuracy_score(y_test, y_pred):.4f}")
 
-    # Counterfactual Repair
-    # df_results = generate_counterfactuals(X_test, model_nn, scaler, feature_cols, y_test)
-
     # Fairness Metrics After Repair
     compute_fairness_metrics(X_test, y_pred.squeeze(), title="AFTER REPAIR")
 
@@ -76,6 +74,8 @@ def main():
     print(f"Estimated Total Effect of Gender on Income: {effect_after.value:.4f}")
 
     plot_repair_effect(X_test, y_test, y_pred.squeeze())
+
+    repair_data(model_nn, scaler, data, processed_data, feature_cols, 'sex_Male')
 
 
 if __name__ == "__main__":
